@@ -19,7 +19,8 @@ def validate_username(username):
 def validate_email_format(email):
     """Validate email format using email-validator library"""
     try:
-        validate_email(email)
+        # Allow test domains for development
+        validate_email(email, check_deliverability=False)
         return True, None
     except EmailNotValidError as e:
         return False, str(e)

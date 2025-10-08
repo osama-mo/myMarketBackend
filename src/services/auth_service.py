@@ -6,25 +6,11 @@ from flask_jwt_extended import create_access_token, create_refresh_token
 class AuthService:
     """
     Authentication Service - Business logic for signup/login
-    
-    Why?
-    - Separates business logic from routes
-    - Handles validation, password hashing, token creation
-    - Easy to test independently
     """
     
     @staticmethod
     def signup(username, email, password):
-        """
-        Register a new user
-        
-        Steps:
-        1. Validate input
-        2. Check if user exists
-        3. Hash password
-        4. Create user in database
-        5. Generate tokens
-        """
+        """Register a new user"""
         
         # Validate username
         is_valid, error = validate_username(username)
@@ -48,15 +34,15 @@ class AuthService:
         if UserRepository.user_exists(email=email):
             return None, "Email already exists"
         
-        # Hash password (NEVER store plain passwords!)
+        # Hash password
         password_hash = bcrypt.generate_password_hash(password).decode('utf-8')
         
         # Create user
         user = UserRepository.create_user(username, email, password_hash)
         
-        # Generate JWT tokens
-        access_token = create_access_token(identity=user.id)
-        refresh_token = create_refresh_token(identity=user.id)
+        # Generate JWT tokens with STRING identity (not integer!)
+        access_token = create_access_token(identity=str(user.id))
+        refresh_token = create_refresh_token(identity=str(user.id))
         
         return {
             'user': user.to_dict(),
@@ -66,14 +52,7 @@ class AuthService:
     
     @staticmethod
     def login(username, password):
-        """
-        Login existing user
-        
-        Steps:
-        1. Find user by username
-        2. Verify password
-        3. Generate tokens
-        """
+        """Login existing user"""
         
         # Find user
         user = UserRepository.get_user_by_username(username)
@@ -84,9 +63,9 @@ class AuthService:
         if not bcrypt.check_password_hash(user.password_hash, password):
             return None, "Invalid username or password"
         
-        # Generate tokens
-        access_token = create_access_token(identity=user.id)
-        refresh_token = create_refresh_token(identity=user.id)
+        # Generate tokens with STRING identity
+        access_token = create_access_token(identity=str(user.id))
+        refresh_token = create_refresh_token(identity=str(user.id))
         
         return {
             'user': user.to_dict(),

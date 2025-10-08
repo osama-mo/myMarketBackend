@@ -13,6 +13,12 @@ def init_db(app):
     bcrypt.init_app(app)
     jwt.init_app(app)
     with app.app_context():
-        from src.models import user
+        # Import all models explicitly BEFORE creating tables
+        # Order matters: import parent tables before child tables
+        from src.models.user import User
+        from src.models.product import Product
+        from src.models.basket import Basket, BasketItem
+        
+        # Now create all tables
         db.create_all()
-        print("Database and tables created.")
+        print("✅ Database and tables created.")
